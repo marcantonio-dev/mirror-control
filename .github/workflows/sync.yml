@@ -1,7 +1,7 @@
 name: Sync mirrors
 
 # Weekly: fast-forward every mirror from upstream and move each `vetted` branch to the head the
-# previous run staged. Consumers pick up `vetted` through Renovate PRs.
+# previous run staged. Consumers pick up `vetted` through bump-pins.yml PRs.
 on:
   schedule:
     - cron: "0 14 * * 1" # Mondays 14:00 UTC
