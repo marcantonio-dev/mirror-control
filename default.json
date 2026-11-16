@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Shared Renovate preset: 7-day cooldown on registry and Action releases, plus bumps for git sources pinned to vetted marcantonio-dev mirrors",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "schedule": ["before 6am on monday"],
+  "dependencyDashboard": false,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "git sources pinned to a mirror, such as pi packages: git:github.com/marcantonio-dev/<repo>@<sha>",
+      "managerFilePatterns": ["/\\.(json|jsonc|ya?ml|toml)$/"],
+      "matchStrings": ["git:github\\.com/marcantonio-dev/(?<depName>[\\w.-]+)@(?<currentDigest>[0-9a-f]{40})"],
+      "datasourceTemplate": "git-refs",
+      "packageNameTemplate": "https://github.com/marcantonio-dev/{{depName}}",
+      "currentValueTemplate": "vetted"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Mirrors already sat out mirror-control's cooldown before vetted moved",
+      "matchDatasources": ["git-refs"],
+      "minimumReleaseAge": null,
+      "groupName": "vetted mirrors",
+      "commitMessageTopic": "vetted mirrors"
+    }
+  ]
+}

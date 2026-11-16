@@ -1,0 +1,8 @@
+{
+  "marcantonio-dev/ECC": {
+    "upstream": "affaan-m/ECC"
+  },
+  "marcantonio-dev/pi-caveman": {
+    "upstream": "jonjonrankin/pi-caveman"
+  }
+}

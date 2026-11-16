@@ -1,0 +1,43 @@
+name: Sync mirrors
+
+# Weekly: fast-forward every mirror from upstream and move each `vetted` branch to the head the
+# previous run staged. Consumers pick up `vetted` through Renovate PRs.
+on:
+  schedule:
+    - cron: "0 14 * * 1" # Mondays 14:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-mirrors
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.MIRROR_SYNC_CLIENT_ID }}
+          private-key: ${{ secrets.MIRROR_SYNC_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.app.outputs.token }}
+
+      - id: sync
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: python3 -I sync.py
+
+      - name: Record staged heads
+        if: always() && steps.sync.outcome != 'skipped'
+        run: |
+          git diff --quiet mirrors.json && exit 0
+          git config user.name "marcantonio-dev mirror sync"
+          git config user.email "mirror-sync@users.noreply.github.com"
+          git commit -m "Record mirror sync $(date -u +%F)" mirrors.json
+          git push origin HEAD:main
