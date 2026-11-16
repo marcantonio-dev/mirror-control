@@ -7,9 +7,17 @@
     "upstream": "affaan-m/ECC"
   },
   "marcantonio-dev/agent-browser": {
+    "staged": {
+      "seen": "2026-11-16T23:15:49+00:00",
+      "sha": "b06e2533ba9b3823b8a96c859d455cb55f4d7893"
+    },
     "upstream": "vercel-labs/agent-browser"
   },
   "marcantonio-dev/mcp_excalidraw": {
+    "staged": {
+      "seen": "2026-11-16T23:15:49+00:00",
+      "sha": "81720ac819d2325177cd6137c6ad41d52d0f5374"
+    },
     "upstream": "yctimlin/mcp_excalidraw"
   },
   "marcantonio-dev/pi-caveman": {
@@ -23,6 +31,10 @@
     "upstream": "earendil-works/pi-claude-code"
   },
   "marcantonio-dev/playwright-cli": {
+    "staged": {
+      "seen": "2026-11-16T23:15:49+00:00",
+      "sha": "b21724888b8100b05ef8dee3a92f2bb03bf4dcde"
+    },
     "upstream": "microsoft/playwright-cli"
   }
 }
