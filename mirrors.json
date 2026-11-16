@@ -6,11 +6,20 @@
     },
     "upstream": "affaan-m/ECC"
   },
+  "marcantonio-dev/agent-browser": {
+    "upstream": "vercel-labs/agent-browser"
+  },
   "marcantonio-dev/pi-caveman": {
     "staged": {
       "seen": "2026-11-16T06:30:15+00:00",
       "sha": "81411293756f68d92dd816d3bdea7e97f2ede955"
     },
     "upstream": "jonjonrankin/pi-caveman"
+  },
+  "marcantonio-dev/pi-claude-code": {
+    "upstream": "earendil-works/pi-claude-code"
+  },
+  "marcantonio-dev/playwright-cli": {
+    "upstream": "microsoft/playwright-cli"
   }
 }
