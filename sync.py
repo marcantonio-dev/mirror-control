@@ -10,7 +10,7 @@ A mirror is any fork the GitHub App can see. Each run, for every mirror:
 3. The default branch head is staged with the time this job first saw it. A head staged by an
    earlier run (at least COOLDOWN ago) is fast-forwarded onto `vetted`, creating it if needed.
 
-Consumers pin to commits on `vetted`, and Renovate proposes bumps when it moves. The cooldown is
+Consumers pin to commits on `vetted`, and bump-pins.yml opens a PR when it moves. The cooldown is
 measured from when this job saw a commit, not from commit dates, which an attacker can set.
 """
 
