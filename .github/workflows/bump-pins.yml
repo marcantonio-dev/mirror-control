@@ -1,0 +1,141 @@
+name: Bump mirror pins
+
+# Reusable workflow for consumer repos. Moves every
+# `git:github.com/marcantonio-dev/<repo>@<sha>` pin to that mirror's `vetted` head (fast-forwards
+# only) and opens or updates a PR. Call it pinned to a commit SHA of this repo:
+#
+#   permissions:
+#     contents: write
+#     pull-requests: write
+#   jobs:
+#     bump:
+#       uses: marcantonio-dev/mirror-control/.github/workflows/bump-pins.yml@<sha> # v1.0.0
+#
+# The script is inline so the caller's SHA pin covers the code that runs.
+on:
+  workflow_call:
+    inputs:
+      files:
+        description: Space-separated globs of files holding pins
+        type: string
+        default: settings.json
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: mirror-pins/bump
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - id: plan
+        env:
+          PIN_FILES: ${{ inputs.files }}
+        run: |
+          python3 -I - <<'PY'
+          """Bump `git:github.com/marcantonio-dev/<repo>@<sha>` pins to each mirror's `vetted` head.
+
+          Runs in a consumer repo via the bump-pins reusable workflow. Only fast-forwards are accepted: if
+          `vetted` is not a descendant of the pinned commit, the pin is left alone and reported.
+          Writes the PR body to pr-body.md and `bumped=true|false` to GITHUB_OUTPUT.
+          """
+
+          import glob
+          import json
+          import os
+          import re
+          import subprocess
+          import urllib.request
+
+          ORG = "marcantonio-dev"
+          PIN = re.compile(rf"git:github\.com/{ORG}/([\w.-]+)@([0-9a-f]{{40}})")
+
+
+          def vetted_head(repo):
+              url = f"https://github.com/{ORG}/{repo}"
+              out = subprocess.run(
+                  ["git", "ls-remote", url, "refs/heads/vetted"], capture_output=True, text=True, check=True
+              ).stdout.split()
+              return out[0] if out else None
+
+
+          def compare_status(repo, base, head):
+              request = urllib.request.Request(
+                  f"https://api.github.com/repos/{ORG}/{repo}/compare/{base}...{head}",
+                  headers={
+                      "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                      "Accept": "application/vnd.github+json",
+                  },
+              )
+              with urllib.request.urlopen(request) as response:
+                  return json.load(response)["status"]
+
+
+          def main():
+              patterns = os.environ.get("PIN_FILES", "settings.json").split()
+              files = sorted({path for pattern in patterns for path in glob.glob(pattern, recursive=True)})
+              contents = {path: open(path).read() for path in files}
+              pins = {(repo, sha) for text in contents.values() for repo, sha in PIN.findall(text)}
+
+              bumps, problems = {}, []
+              for repo, sha in sorted(pins):
+                  head = vetted_head(repo)
+                  if head is None:
+                      problems.append(f"`{ORG}/{repo}` has no `vetted` branch")
+                  elif head != sha:
+                      status = compare_status(repo, sha, head)
+                      if status == "ahead":
+                          bumps[(repo, sha)] = head
+                      else:
+                          problems.append(f"`{ORG}/{repo}`: vetted `{head[:12]}` is {status} relative to pin `{sha[:12]}`, not a fast-forward")
+
+              for path, text in contents.items():
+                  for (repo, sha), head in bumps.items():
+                      text = text.replace(f"{ORG}/{repo}@{sha}", f"{ORG}/{repo}@{head}")
+                  if text != contents[path]:
+                      with open(path, "w") as file:
+                          file.write(text)
+
+              lines = [
+                  "Mirror pins moved to each mirror's `vetted` head. These commits waited a week in",
+                  f"[mirror-control](https://github.com/{ORG}/mirror-control) before `vetted` moved.",
+                  "Review each diff before merging.",
+                  "",
+                  *[
+                      f"- `{ORG}/{repo}`: https://github.com/{ORG}/{repo}/compare/{sha}...{head}"
+                      for (repo, sha), head in sorted(bumps.items())
+                  ],
+              ]
+              if problems:
+                  lines += ["", "**Not bumped:**", "", *[f"- {p}" for p in problems]]
+              with open("pr-body.md", "w") as file:
+                  file.write("\n".join(lines) + "\n")
+              with open(os.environ.get("GITHUB_OUTPUT", os.devnull), "a") as output:
+                  output.write(f"bumped={'true' if bumps else 'false'}\n")
+              print("\n".join(lines))
+              for problem in problems:
+                  print(f"::warning::{problem}")
+
+
+          if __name__ == "__main__":
+              main()
+          PY
+
+      - name: Open or update the PR
+        if: steps.plan.outputs.bumped == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git commit -am "Bump mirror pins"
+          git push --force origin "$BRANCH"
+          if [ "$(gh pr view "$BRANCH" --json state --jq .state 2>/dev/null)" = OPEN ]; then
+            gh pr edit "$BRANCH" --body-file pr-body.md
+          else
+            gh pr create --base "${{ github.event.repository.default_branch }}" --head "$BRANCH" \
+              --title "Bump mirror pins" --body-file pr-body.md
+          fi

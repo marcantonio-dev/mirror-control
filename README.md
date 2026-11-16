@@ -19,9 +19,8 @@ Actions and the like). Every other repo in `marcantonio-dev` is a fork of an ups
     commit dates can be faked.
 - **`mirrors.json`** is committed back after each run, so its history is an audit log of what was
   staged and when.
-- **Consumers** pin to full commit SHAs on `vetted`, for example
-  `git:github.com/marcantonio-dev/ECC@<sha>` in a pi `settings.json`. Renovate opens a PR when
-  `vetted` moves.
+- **Consumers** pin to full commit SHAs on `vetted` and call `bump-pins.yml`, which opens a PR
+  when `vetted` moves (see below).
 
 ## Adding a mirror
 
@@ -37,23 +36,37 @@ commit, say):
 gh api repos/marcantonio-dev/<repo>/git/refs -f ref=refs/heads/vetted -f sha=<full sha>
 ```
 
-## Renovate preset
+## Using mirrors in a repo
 
-`default.json` is a shared Renovate preset. A consumer repo's `renovate.json` only needs:
+Pin to a full commit SHA on the mirror's `vetted` branch, for example
+`git:github.com/marcantonio-dev/ECC@<sha>` in a pi `settings.json`. Then add
+`.github/workflows/bump-mirror-pins.yml`:
 
-```json
-{ "extends": ["github>marcantonio-dev/mirror-control"] }
+```yaml
+name: Bump mirror pins
+on:
+  schedule:
+    - cron: "0 18 * * 1" # Mondays, after the sync
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  bump:
+    uses: marcantonio-dev/mirror-control/.github/workflows/bump-pins.yml@<sha> # v1.0.0
+    # with:
+    #   files: "settings.json other/*.json"   # globs holding pins; default settings.json
 ```
 
-It brings:
+and turn on **Settings → Actions → General → Allow GitHub Actions to create and approve pull
+requests**. The workflow moves each pin to its mirror's `vetted` head, only as a fast-forward, and
+opens a `Bump mirror pins` PR with a diff link per mirror. It runs with the repo's own
+`GITHUB_TOKEN`: no app, no secret and no third party.
 
-- a 7-day `minimumReleaseAge` for registry packages (npm, PyPI, crates) and GitHub Actions
-- pinned Action digests
-- a custom manager that bumps `git:github.com/marcantonio-dev/<repo>@<sha>` pins in JSON, YAML
-  and TOML files to the head of `vetted`, with no extra wait because the mirror already had one
-
-Forks only protect code installed from git. For registry packages, the protection is lockfiles
-with integrity hashes plus the cooldown above.
+For registry packages (npm, PyPI, crates) and GitHub Actions, use Dependabot, which is built into
+GitHub. Give registry ecosystems a `cooldown` (for example `default-days: 7`) so new releases wait
+a week. Forks only protect code installed from git; for registry packages the protection is
+lockfiles with integrity hashes plus that cooldown.
 
 ## Setup
 
@@ -61,4 +74,4 @@ with integrity hashes plus the cooldown above.
   Workflows read/write. Its client ID is the `MIRROR_SYNC_CLIENT_ID` variable and its private key
   is the `MIRROR_SYNC_PRIVATE_KEY` secret on this repo.
 - Org Actions policy: enabled for selected repositories, only `mirror-control`.
-- Renovate app installed on the consumer repos.
+- Dependabot keeps this repo's own pinned actions current.
