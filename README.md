@@ -38,8 +38,9 @@ gh api repos/marcantonio-dev/<repo>/git/refs -f ref=refs/heads/vetted -f sha=<fu
 
 ## Using mirrors in a repo
 
-Pin to a full commit SHA on the mirror's `vetted` branch, for example
-`git:github.com/marcantonio-dev/ECC@<sha>` in a pi `settings.json`. Then add
+Pin to a full commit SHA on the mirror's `vetted` branch, either as
+`github.com/marcantonio-dev/<repo>@<sha>` (a pi package in `settings.json`) or as
+`github.com/marcantonio-dev/<repo>.git#<sha>` (a Docker Compose build context). Then add
 `.github/workflows/bump-mirror-pins.yml`:
 
 ```yaml
@@ -53,9 +54,9 @@ permissions:
   pull-requests: write
 jobs:
   bump:
-    uses: marcantonio-dev/mirror-control/.github/workflows/bump-pins.yml@<sha> # v1.0.0
+    uses: marcantonio-dev/mirror-control/.github/workflows/bump-pins.yml@<sha> # v1.1.0
     # with:
-    #   files: "settings.json other/*.json"   # globs holding pins; default settings.json
+    #   files: "settings.json services/compose.yml"   # globs holding pins; default settings.json
 ```
 
 and turn on **Settings → Actions → General → Allow GitHub Actions to create and approve pull

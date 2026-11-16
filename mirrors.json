@@ -9,6 +9,9 @@
   "marcantonio-dev/agent-browser": {
     "upstream": "vercel-labs/agent-browser"
   },
+  "marcantonio-dev/mcp_excalidraw": {
+    "upstream": "yctimlin/mcp_excalidraw"
+  },
   "marcantonio-dev/pi-caveman": {
     "staged": {
       "seen": "2026-11-16T06:30:15+00:00",

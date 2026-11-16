@@ -1,7 +1,8 @@
 name: Bump mirror pins
 
-# Reusable workflow for consumer repos. Moves every
-# `git:github.com/marcantonio-dev/<repo>@<sha>` pin to that mirror's `vetted` head (fast-forwards
+# Reusable workflow for consumer repos. Moves every mirror pin, either
+# `github.com/marcantonio-dev/<repo>@<sha>` (pi packages) or
+# `github.com/marcantonio-dev/<repo>.git#<sha>` (Docker build contexts), to that mirror's `vetted` head (fast-forwards
 # only) and opens or updates a PR. Call it pinned to a commit SHA of this repo:
 #
 #   permissions:
@@ -37,7 +38,7 @@ jobs:
           PIN_FILES: ${{ inputs.files }}
         run: |
           python3 -I - <<'PY'
-          """Bump `git:github.com/marcantonio-dev/<repo>@<sha>` pins to each mirror's `vetted` head.
+          """Bump `github.com/marcantonio-dev/<repo>@<sha>` and `<repo>.git#<sha>` pins to each mirror's `vetted` head.
 
           Runs in a consumer repo via the bump-pins reusable workflow. Only fast-forwards are accepted: if
           `vetted` is not a descendant of the pinned commit, the pin is left alone and reported.
@@ -52,7 +53,7 @@ jobs:
           import urllib.request
 
           ORG = "marcantonio-dev"
-          PIN = re.compile(rf"git:github\.com/{ORG}/([\w.-]+)@([0-9a-f]{{40}})")
+          PIN = re.compile(rf"github\.com/{ORG}/([\w.-]+?)(?:\.git)?[@#]([0-9a-f]{{40}})")
 
 
           def vetted_head(repo):
@@ -93,9 +94,12 @@ jobs:
                       else:
                           problems.append(f"`{ORG}/{repo}`: vetted `{head[:12]}` is {status} relative to pin `{sha[:12]}`, not a fast-forward")
 
+              def bump(match):
+                  head = bumps.get((match.group(1), match.group(2)))
+                  return match.group(0)[: -40] + head if head else match.group(0)
+
               for path, text in contents.items():
-                  for (repo, sha), head in bumps.items():
-                      text = text.replace(f"{ORG}/{repo}@{sha}", f"{ORG}/{repo}@{head}")
+                  text = PIN.sub(bump, text)
                   if text != contents[path]:
                       with open(path, "w") as file:
                           file.write(text)
