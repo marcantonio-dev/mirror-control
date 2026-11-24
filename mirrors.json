@@ -1,30 +1,29 @@
 {
   "marcantonio-dev/ECC": {
     "staged": {
-      "seen": "2026-11-16T06:30:15+00:00",
-      "sha": "d2ef2680594f9a17526a6e1a2e18b3d242c5d17b"
+      "seen": "2026-11-24T01:33:13+00:00",
+      "sha": "4adeee6732a12d1540f49a4d50a38ce8c97f9a53"
     },
     "upstream": "affaan-m/ECC"
   },
+  "marcantonio-dev/Handy": {
+    "staged": {
+      "seen": "2026-11-24T01:33:13+00:00",
+      "sha": "939c9573a346859016de1f9d87369a9765af1671"
+    },
+    "upstream": "cjpais/Handy"
+  },
   "marcantonio-dev/agent-browser": {
     "staged": {
-      "seen": "2026-11-16T23:15:49+00:00",
-      "sha": "b06e2533ba9b3823b8a96c859d455cb55f4d7893"
+      "seen": "2026-11-24T01:33:13+00:00",
+      "sha": "0a923358ea989d7602f0d06507ad3447c62ffe9b"
     },
     "upstream": "vercel-labs/agent-browser"
   },
   "marcantonio-dev/mcp_excalidraw": {
-    "staged": {
-      "seen": "2026-11-16T23:15:49+00:00",
-      "sha": "81720ac819d2325177cd6137c6ad41d52d0f5374"
-    },
     "upstream": "yctimlin/mcp_excalidraw"
   },
   "marcantonio-dev/pi-caveman": {
-    "staged": {
-      "seen": "2026-11-16T06:30:15+00:00",
-      "sha": "81411293756f68d92dd816d3bdea7e97f2ede955"
-    },
     "upstream": "jonjonrankin/pi-caveman"
   },
   "marcantonio-dev/pi-claude-code": {
@@ -32,8 +31,8 @@
   },
   "marcantonio-dev/playwright-cli": {
     "staged": {
-      "seen": "2026-11-16T23:15:49+00:00",
-      "sha": "b21724888b8100b05ef8dee3a92f2bb03bf4dcde"
+      "seen": "2026-11-24T01:33:13+00:00",
+      "sha": "c872a33cec77fa03c28fa7c6d1ad99d15d04ce42"
     },
     "upstream": "microsoft/playwright-cli"
   }
